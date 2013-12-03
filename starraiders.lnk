@@ -1,0 +1,8 @@
+
+memory {
+  cartridge: start = $A000, size = $2000, file = %O;
+}
+
+segments {
+  cartridge: load = cartridge;
+}
