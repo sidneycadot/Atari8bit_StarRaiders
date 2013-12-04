@@ -120,6 +120,18 @@ RANDOM   = POKEY + $0A ; (R) random number generator
 IRQEN    = POKEY + $0E ; (W) IRQ enable register
 SKCTL    = POKEY + $0F ; (W) serial port control
 
+AUDF1    = POKEY + $00 ; (W) audio channel 1 frequency
+AUDC1    = POKEY + $01 ; (W) audio channel 1 control
+AUDF2    = POKEY + $02 ; (W) audio channel 2 frequency
+AUDC2    = POKEY + $03 ; (W) audio channel 2 control
+AUDF3    = POKEY + $04 ; (W) audio channel 3 frequency
+AUDC3    = POKEY + $05 ; (W) audio channel 3 control
+AUDF4    = POKEY + $06 ; (W) audio channel 4 frequency
+AUDC4    = POKEY + $07 ; (W) audio channel 4 control
+
+AUDCTL   = POKEY + $08 ; (W) audio control
+STIMER   = POKEY + $09 ; (W) start POKEY timers
+
 ; PIA (6520) registers
 
 PIA = $D300
@@ -395,13 +407,13 @@ main_3:         sty     $65
                 ldx     LEVEL
                 ldy     LBF0C,x
                 jsr     SUB68
-                lda     #$40
-                sta     $D20E
+                lda     #$40                    ; enable keyboard interrupt only
+                sta     IRQEN
 
                 ; enable IRQ, DLI, and VBLANK interrupts
 
                 cli
-                lda     #$C0
+                lda     #$C0                    ; enable VBLANK and DLIST interrupts
                 sta     NMIEN
 
 vblank_loop:
@@ -2175,9 +2187,9 @@ SUB83:          txa
                 dey
                 bpl     @loop
                 lda     LBF20,x
-                sta     $D208
+                sta     AUDCTL
                 lda     LBF21,x
-                sta     $D204
+                sta     AUDF3
 @rts:           rts
 
 ; ----------------------------------------------------------------------------
@@ -2491,7 +2503,7 @@ SUB58:          lda     #0
                 sta     $D6
                 sta     $D1
                 sta     $8B
-                sta     $D207
+                sta     AUDC4
                 sta     $71
                 sta     $81
                 sta     $7D
@@ -2759,7 +2771,7 @@ SUB54:          lda     $D6
                 ldx     $D2
                 inc     $D2
                 lda     LBF5C,x
-                sta     $D206
+                sta     AUDF4
                 ldy     #$A8
                 cmp     #$FF
                 bne     @2
@@ -2769,7 +2781,7 @@ SUB54:          lda     $D6
                 bpl     @1
                 ldy     #0
                 sty     $D6
-@2:             sty     $D207
+@2:             sty     AUDC4
                 sty     $D9
 @3:             lda     $E2
                 beq     @4
@@ -2791,26 +2803,26 @@ SUB54:          lda     $D6
                 inx
                 txa
                 eor     #$FF
-                sta     $D204
+                sta     AUDF3
                 tax
                 asl     a
                 asl     a
                 asl     a
                 asl     a
                 asl     a
-                sta     $D200
+                sta     AUDF1
                 txa
                 lsr     a
                 lsr     a
                 lsr     a
-                sta     $D202
+                sta     AUDF2
                 lsr     a
                 eor     #$8F
-                sta     $D203
+                sta     AUDC2
                 and     #$87
-                sta     $D205
+                sta     AUDC3
                 lda     #$70
-                sta     $D208
+                sta     AUDCTL
                 rts
 
 @5:             lda     $DB
@@ -2831,13 +2843,13 @@ SUB54:          lda     $D6
 @7:             lda     LBFEA,x
                 sta     $DD
                 lda     LBFF2,x
-                sta     $D204
-                sta     $D209
+                sta     AUDF3
+                sta     STIMER                  ; start the POKEY timers
 @8:             lda     $E3
                 beq     @9
                 dec     $E3
                 lda     RANDOM
-                sta     $D204
+                sta     AUDF3
                 and     #$20
                 eor     $DD
                 sta     $DD
@@ -2845,11 +2857,11 @@ SUB54:          lda     $D6
                 lda     $DE
                 adc     $E0
                 sta     $DE
-                sta     $D200
+                sta     AUDF1
                 lda     $DF
                 adc     #0
                 sta     $DF
-                sta     $D202
+                sta     AUDF2
                 ldx     $DC
                 ldy     $DD
                 lda     $72
@@ -2870,8 +2882,8 @@ SUB54:          lda     $D6
                 beq     @11
                 dey
                 sty     $DD
-@11:            stx     $D203
-                sty     $D205
+@11:            stx     AUDC2
+                sty     AUDC3
                 rts
 
 ; ----------------------------------------------------------------------------
@@ -3437,6 +3449,8 @@ SUB94:          lda     #$63
                 sta     $0A40,x
                 and     #1
                 sta     $09AD,x
+
+                ; fallthrough to SUB93
 
 ; ----------------------------------------------------------------------------
 
