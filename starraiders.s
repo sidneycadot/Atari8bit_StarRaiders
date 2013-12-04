@@ -982,7 +982,7 @@ loop_7:         ldy     $0C5B
                 ; if
 
 @60:            jsr     SUB79
-                lda     $D300
+                lda     PORTA
                 tay
                 and     #3
                 tax
@@ -2488,7 +2488,7 @@ SUB59:          cpx     #$11
 @rts:           rts
 
 @3:             bne     @4
-                lda     $D300
+                lda     PORTA
                 cmp     #$FF
                 beq     @3
                 rts
@@ -2721,7 +2721,7 @@ show_status:    ; clear status line and set $6B to zero.
                 ; find the correct string
                 ; at this point, $6A contains the string index
 
-@loop:          inc     $68     ; increment ($68)
+@loop:          inc     $68                     ; increment ($68)
                 bne     @7
                 inc     $69
 @7:             ldy     #0
